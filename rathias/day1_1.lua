@@ -15,7 +15,7 @@ for line in io.lines(path) do
 	if newDial < 0 or newDial > 99 then
 		newDial = (newDial % 100)
 	end
-	if newDial <= 0 then
+	if newDial == 0 then
 		dialHitZero = dialHitZero + 1
 		newDial = 0
 	end
