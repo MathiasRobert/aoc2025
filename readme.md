@@ -2,7 +2,7 @@
 
 [https://adventofcode.com/](https://adventofcode.com/)
 
-Pour rejoindre le leaderboard : [https://adventofcode.com/2025/leaderboard/private](https://adventofcode.com/2025/leaderboard/private)
+Pour rejoindre le leaderboard : [https://adventofcode.com/2025/leaderboard/private](https://adventofcode.com/2025/leaderboard/private)<br>
 Code : 3857149-8caec7c4
 
 - Chacun son dossier
