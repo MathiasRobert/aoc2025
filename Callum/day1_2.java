@@ -6,10 +6,6 @@ import java.util.stream.Collectors;
 
 public class day1_2 {
 
-    public static void main(String[] args) throws IOException {
-        System.out.println(getRealCode());
-    }
-
     public static Integer getRealCode() throws IOException {
         List<Integer> inputs = getInputs();
         int code = 0;
@@ -43,7 +39,7 @@ public class day1_2 {
 
     private static List<Integer> getInputs() throws IOException {
         File inputFile = new File("inputs/day1_1.txt");
-        List<String> rawInputs = Files.lines(inputFile.toPath()).collect(Collectors.toList());
+        List<String> rawInputs = Files.lines(inputFile.toPath()).toList();
         return rawInputs.stream().map(s -> {
             s = s.replace("L", "-");
             s = s.replace("R", "");
