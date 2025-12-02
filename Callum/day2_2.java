@@ -15,15 +15,29 @@ public class day2_2 {
             long end = Long.parseLong(startAndEnd.getLast());
             for (long i = start; i <= end; i++) {
                 String stringifiedI = Long.toString(i);
-                int iLength = stringifiedI.length();
-                for (int j = 1; j <= iLength/2; j++) {
-                    if (iLength % j == 0) {
-                        List<String> iChunks = Arrays.asList(stringifiedI.split("(?<=\\G.{" + j + "})"));
-                        if (iChunks.stream().allMatch(c -> c.equals(iChunks.getFirst()))) {
-                            output += i;
-                            break;
-                        }
-                    }
+                output = getOutput1(stringifiedI, output, i);
+                //output = getOutput2(stringifiedI, output, i);
+            }
+        }
+        return output;
+    }
+
+    private static long getOutput1(String stringifiedI, long output, long i) {
+        String ii = stringifiedI + stringifiedI;
+        if (ii.indexOf(stringifiedI, 1) != stringifiedI.length()) {
+            output += i;
+        }
+        return output;
+    }
+
+    private static long getOutput2(String stringifiedI, long output, long i) {
+        int iLength = stringifiedI.length();
+        for (int j = 1; j <= iLength/2; j++) {
+            if (iLength % j == 0) {
+                List<String> iChunks = Arrays.asList(stringifiedI.split("(?<=\\G.{" + j + "})"));
+                if (iChunks.stream().allMatch(c -> c.equals(iChunks.getFirst()))) {
+                    output += i;
+                    break;
                 }
             }
         }
