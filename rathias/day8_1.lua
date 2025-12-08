@@ -142,6 +142,9 @@ table.sort(distances, function(a, b)
 	return a.distance < b.distance
 end)
 print(#distances)
+for k, v in pairs(distances) do
+	print(v.distance)
+end
 
 for i = 1, (test and 10 or 1000) do
 	-- local p1, p2, dist = getShorterDist(points)
