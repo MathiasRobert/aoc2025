@@ -14,7 +14,7 @@ public class day8_1 {
 
     private long getResult(List<String> lines) {
         lines.forEach(l -> {
-            int[] coordinates = Arrays.stream(l.split(",")).mapToInt(Integer::parseInt).toArray();
+            long[] coordinates = Arrays.stream(l.split(",")).mapToLong(Long::parseLong).toArray();
             new JunctionBox(coordinates[0], coordinates[1], coordinates[2], this);
         });
         for (int i = 0; i < (TEST?10:1000); i++) {
@@ -27,16 +27,16 @@ public class day8_1 {
     }
 
     public class JunctionBox {
-        public int x;
-        public int y;
-        public int z;
+        public long x;
+        public long y;
+        public long z;
 
         private JunctionBox closestJunctionBox;
         private final List<JunctionBox> connectedJunctionBoxes = new ArrayList<>();
         public Network network;
         private final day8_1 day81;
 
-        public JunctionBox(int x, int y, int z, day8_1 day81) {
+        public JunctionBox(long x, long y, long z, day8_1 day81) {
             this.x = x;
             this.y = y;
             this.z = z;
@@ -51,18 +51,18 @@ public class day8_1 {
         }
 
         public JunctionBox getClosestJunctionBox() {
-            if (this.closestJunctionBox != null) {
-                return this.closestJunctionBox;
-            }
-            JunctionBox closestJunctionBox = null;
-            for (JunctionBox junctionBox : day81.junctionBoxes) {
-                if (junctionBox!=this && !this.connectedJunctionBoxes.contains(junctionBox)) {
-                    if (closestJunctionBox == null || getXYZDistance(junctionBox) < getXYZDistance(closestJunctionBox)) {
-                        closestJunctionBox = junctionBox;
+            if (this.closestJunctionBox == null) {
+                JunctionBox closestJunctionBox = null;
+                for (JunctionBox junctionBox : day81.junctionBoxes) {
+                    if (junctionBox != this && !this.connectedJunctionBoxes.contains(junctionBox)) {
+                        if (closestJunctionBox == null || getXYZDistance(junctionBox) < getXYZDistance(closestJunctionBox)) {
+                            closestJunctionBox = junctionBox;
+                        }
                     }
                 }
+                this.closestJunctionBox = closestJunctionBox;
             }
-            this.closestJunctionBox = closestJunctionBox;
+            System.out.println(getXYZDistance(closestJunctionBox));
             return closestJunctionBox;
         }
 
