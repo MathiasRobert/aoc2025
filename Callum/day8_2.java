@@ -2,70 +2,96 @@ import java.io.IOException;
 import java.util.*;
 
 public class day8_2 {
-    List<day8_2.JunctionBox> junctionBoxes = new ArrayList<>();
-    List<day8_2.Network> networks = new ArrayList<>();
+    private static boolean TEST = false;
+    List<JunctionBox> junctionBoxes = new ArrayList<>();
+    List<Network> networks = new ArrayList<>();
 
     public static long getResult() throws IOException {
         day8_2 result = new day8_2();
-        List<String> lines = util.getFileLines(8, true);
+        List<String> lines = util.getFileLines(8, TEST);
         return result.getResult(lines);
     }
 
     private long getResult(List<String> lines) {
         lines.forEach(l -> {
-            int[] coordinates = Arrays.stream(l.split(",")).mapToInt(Integer::parseInt).toArray();
-            new day8_2.JunctionBox(coordinates[0], coordinates[1], coordinates[2], this);
+            long[] coordinates = Arrays.stream(l.split(",")).mapToLong(Long::parseLong).toArray();
+            new JunctionBox(coordinates[0], coordinates[1], coordinates[2], this);
         });
-        junctionBoxes.forEach(j -> j.setClosestJunctionBox(junctionBoxes));
-        List<day8_2.Network> max3 = networks.stream().sorted(Comparator.comparingInt(n -> n.junctionBoxes.size())).toList().subList(0, 3);
-        return max3.stream().mapToLong(n -> n.junctionBoxes.size()).reduce(1, (a, b) -> a * b);
+        long last1 = 0;
+        long last2 = 0;
+        while (networks.size() > 1) {
+            JunctionBox closestJB = junctionBoxes.stream()
+                    .min(Comparator.comparingDouble(j -> j.getXYZDistance(j.getClosestJunctionBox()))).get();
+            last1 = closestJB.x;
+            last2 = closestJB.getClosestJunctionBox().x;
+            closestJB.connectClosestJunctionBox();
+        }
+        return last1 * last2;
     }
 
     public class JunctionBox {
-        public int x;
-        public int y;
-        public int z;
+        public long x;
+        public long y;
+        public long z;
 
-        private day8_2.JunctionBox closestJunctionBox;
-        public day8_2.Network network;
+        private JunctionBox closestJunctionBox;
+        private final List<JunctionBox> connectedJunctionBoxes = new ArrayList<>();
+        public Network network;
         private final day8_2 day82;
 
-        public JunctionBox(int x, int y, int z, day8_2 day82) {
+        public JunctionBox(long x, long y, long z, day8_2 day82) {
             this.x = x;
             this.y = y;
             this.z = z;
 
-            network = new day8_2.Network(this, day82);
+            network = new Network(this, day82);
             day82.junctionBoxes.add(this);
             this.day82 = day82;
         }
 
-        private double getXYZDistance(day8_2.JunctionBox other) {
+        private double getXYZDistance(JunctionBox other) {
             return Math.sqrt((x - other.x) * (x - other.x) + (y - other.y) * (y - other.y) + (z - other.z) * (z - other.z));
         }
 
-        public void setClosestJunctionBox(List<day8_2.JunctionBox> junctionBoxes) {
-            day8_2.JunctionBox closestJunctionBox = null;
-            for (day8_2.JunctionBox junctionBox : junctionBoxes) {
-                if (junctionBox!=this) {
-                    if (closestJunctionBox == null || getXYZDistance(junctionBox) < getXYZDistance(closestJunctionBox)) {
-                        closestJunctionBox = junctionBox;
+        public JunctionBox getClosestJunctionBox() {
+            if (this.closestJunctionBox == null) {
+                JunctionBox closestJunctionBox = null;
+                for (JunctionBox junctionBox : day82.junctionBoxes) {
+                    if (junctionBox != this && !this.connectedJunctionBoxes.contains(junctionBox)) {
+                        if (closestJunctionBox == null || getXYZDistance(junctionBox) < getXYZDistance(closestJunctionBox)) {
+                            closestJunctionBox = junctionBox;
+                        }
                     }
                 }
+                this.closestJunctionBox = closestJunctionBox;
             }
-            if (closestJunctionBox != null && this.network != closestJunctionBox.network) {
-                day82.networks.remove(closestJunctionBox.network);
-                this.network.junctionBoxes.addAll(closestJunctionBox.network.junctionBoxes);
-                closestJunctionBox.network.junctionBoxes.forEach(j -> j.network = this.network);
+            return closestJunctionBox;
+        }
+
+        public void connectClosestJunctionBox() {
+            if (closestJunctionBox != null) {
+                if (this.network!=this.closestJunctionBox.network) {
+                    day82.networks.remove(this.closestJunctionBox.network);
+                    this.network.junctionBoxes.addAll(this.closestJunctionBox.network.junctionBoxes);
+                    this.closestJunctionBox.network.junctionBoxes.forEach(j -> j.network = this.network);
+                }
+
+                this.connectedJunctionBoxes.add(this.closestJunctionBox);
+                this.closestJunctionBox.connectedJunctionBoxes.add(this);
+
+                this.closestJunctionBox.closestJunctionBox = null;
+                this.closestJunctionBox = null;
+            } else {
+                throw new IllegalStateException("closestJunctionBox is null");
             }
         }
     }
 
     public class Network {
-        public Set<day8_2.JunctionBox> junctionBoxes;
+        public Set<JunctionBox> junctionBoxes;
 
-        public Network(day8_2.JunctionBox junctionBox, day8_2 day82) {
-            Set<day8_2.JunctionBox> junctionBoxSet = new HashSet<>();
+        public Network(JunctionBox junctionBox, day8_2 day82) {
+            Set<JunctionBox> junctionBoxSet = new HashSet<>();
             junctionBoxSet.add(junctionBox);
             this.junctionBoxes = junctionBoxSet;
             day82.networks.add(this);

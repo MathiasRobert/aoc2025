@@ -62,7 +62,6 @@ public class day8_1 {
                 }
                 this.closestJunctionBox = closestJunctionBox;
             }
-            System.out.println(getXYZDistance(closestJunctionBox));
             return closestJunctionBox;
         }
 
