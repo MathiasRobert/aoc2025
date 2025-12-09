@@ -29,17 +29,21 @@ public class day9_2 {
         }
 
         long rectangle = 0;
+
         for (int i = 0; i < tiles.size(); i++) {
+            Tile a = tiles.get(i);
             for (int j = i + 1; j < tiles.size(); j++) {
-                Tile a = tiles.get(i);
                 Tile b = tiles.get(j);
-                if (isEligible(a, b, verticalLines, horizontalLines)){
-                    long size = (Math.abs(a.x - b.x) + 1) * (Math.abs(a.y - b.y) + 1);
-                    rectangle = Math.max(size, rectangle);
+                if (getSize(a, b) > rectangle && isEligible(a, b, verticalLines, horizontalLines)) {
+                    rectangle = getSize(a, b);
                 }
             }
         }
         return rectangle;
+    }
+
+    private static long getSize(Tile a, Tile b) {
+        return (Math.abs(a.x - b.x) + 1) * (Math.abs(a.y - b.y) + 1);
     }
 
     private static boolean isEligible(Tile a, Tile b, List<VerticalLine> verticalLines, List<HorizontalLine> horizontalLines) {
@@ -48,92 +52,43 @@ public class day9_2 {
         HorizontalLine topHorizontalLine = new HorizontalLine(new Tile(a.x, min(a.y, b.y)), new Tile(b.x, min(a.y, b.y)));
         HorizontalLine bottomHorizontalLine = new HorizontalLine(new Tile(a.x, max(a.y, b.y)), new Tile(b.x, max(a.y, b.y)));
 
-        List<VerticalLine> leftVerticalLines = getLeftVerticalLines(verticalLines, leftVerticalLine);
-        List<VerticalLine> rightVerticalLines = getRightVerticalLines(verticalLines, rightVerticalLine);
-        List<HorizontalLine> topHorizontalLines = getTopHorizontalLines(horizontalLines, topHorizontalLine);
-        List<HorizontalLine> bottomHorizontalLines = getBottomHorizontalLines(horizontalLines, bottomHorizontalLine);
-        if (leftVerticalLines.isEmpty() || rightVerticalLines.isEmpty() || topHorizontalLines.isEmpty() || bottomHorizontalLines.isEmpty()) {
-            return false;
-        }
-        if (isNotVerticalWithinShape(leftVerticalLine, leftVerticalLines)) return false;
-        if (isNotVerticalWithinShape(rightVerticalLine, rightVerticalLines)) return false;
-        if (isNotHorizontalWithinShape(topHorizontalLine, topHorizontalLines)) return false;
-        if (isNotHorizontalWithinShape(bottomHorizontalLine, bottomHorizontalLines)) return false;
-        return true;
+        List<VerticalLine> leftVerticalLines = getVerticalLines(verticalLines, leftVerticalLine, true);
+        List<VerticalLine> rightVerticalLines = getVerticalLines(verticalLines, rightVerticalLine, false);
+        List<HorizontalLine> topHorizontalLines = getHorizontalLines(horizontalLines, topHorizontalLine, true);
+        List<HorizontalLine> bottomHorizontalLines = getHorizontalLines(horizontalLines, bottomHorizontalLine, false);
+
+        return leftVerticalLine.isCovered(leftVerticalLines) &&
+                rightVerticalLine.isCovered(rightVerticalLines) &&
+                topHorizontalLine.isCovered(topHorizontalLines) &&
+                bottomHorizontalLine.isCovered(bottomHorizontalLines);
     }
 
-    private static boolean isNotVerticalWithinShape(VerticalLine verticalLine, List<VerticalLine> verticalLines) {
-        for (int i = 0; i < verticalLines.size() - 1; i++) {
-            if (verticalLines.get(i).end.y < verticalLines.get(i+1).start.y) return true;
-        }
-        if (verticalLines.getFirst().start.y > verticalLine.start.y ||
-                verticalLines.stream().max(Comparator.comparingLong(v -> v.end.y)).get().end.y < verticalLine.end.y)
-            return true;
-        return false;
-    }
-
-    private static boolean isNotHorizontalWithinShape(HorizontalLine horizontalLine, List<HorizontalLine> horizontalLines) {
-        for (int i = 0; i < horizontalLines.size() - 1; i++) {
-            if (horizontalLines.get(i).end.x < horizontalLines.get(i+1).start.x) return true;
-        }
-        if (horizontalLines.getFirst().start.x > horizontalLine.start.x ||
-                horizontalLines.stream().max(Comparator.comparingLong(h -> h.end.x)).get().end.x < horizontalLine.end.x)
-            return true;
-        return false;
-    }
-
-    private static List<VerticalLine> getLeftVerticalLines(List<VerticalLine> verticalLines, VerticalLine leftVerticalLine) {
-        if (leftVerticalLine.start.equals(leftVerticalLine.end)) {
-            return List.of(leftVerticalLine);
+    private static List<VerticalLine> getVerticalLines(List<VerticalLine> verticalLines, VerticalLine verticalLine,
+                                                       boolean left) {
+        if (verticalLine.start.equals(verticalLine.end)) {
+            return List.of(verticalLine);
         }
         return verticalLines.stream()
-                .filter(v -> v.start.x <= leftVerticalLine.start.x && overlapsVertically(leftVerticalLine, v))
+                .filter(v -> (left ? v.start.x <= verticalLine.start.x : v.start.x >= verticalLine.start.x) &&
+                        verticalLine.overlaps(v))
                 .sorted(Comparator.comparingLong(v -> v.start.y)).toList();
     }
 
-    private static List<VerticalLine> getRightVerticalLines(List<VerticalLine> verticalLines, VerticalLine rightVerticalLine) {
-        if (rightVerticalLine.start.equals(rightVerticalLine.end)) {
-            return List.of(rightVerticalLine);
-        }
-        return verticalLines.stream()
-                .filter(v -> v.start.x >= rightVerticalLine.start.x && overlapsVertically(rightVerticalLine, v))
-                .sorted(Comparator.comparingLong(v -> v.start.y)).toList();
-    }
-
-    private static List<HorizontalLine> getTopHorizontalLines(List<HorizontalLine> horizontalLines, HorizontalLine topHorizontalLine) {
-        if (topHorizontalLine.start.equals(topHorizontalLine.end)) {
-            return List.of(topHorizontalLine);
+    private static List<HorizontalLine> getHorizontalLines(List<HorizontalLine> horizontalLines,
+                                                           HorizontalLine horizontalLine, boolean top) {
+        if (horizontalLine.start.equals(horizontalLine.end)) {
+            return List.of(horizontalLine);
         }
         return horizontalLines.stream()
-                .filter(h -> h.start.y <= topHorizontalLine.start.y && overlapsHorizontally(topHorizontalLine, h))
+                .filter(h -> (top ? h.start.y <= horizontalLine.start.y : h.start.y >= horizontalLine.start.y) &&
+                        horizontalLine.overlaps(h))
                 .sorted(Comparator.comparingLong(v -> v.start.x)).toList();
-    }
-
-    private static List<HorizontalLine> getBottomHorizontalLines(List<HorizontalLine> horizontalLines, HorizontalLine bottomHorizontalLine) {
-        if (bottomHorizontalLine.start.equals(bottomHorizontalLine.end)) {
-            return List.of(bottomHorizontalLine);
-        }
-        return horizontalLines.stream()
-                .filter(h -> h.start.y >= bottomHorizontalLine.start.y && overlapsHorizontally(bottomHorizontalLine, h))
-                .sorted(Comparator.comparingLong(v -> v.start.x)).toList();
-    }
-
-
-    private static boolean overlapsVertically(VerticalLine verticalLine, VerticalLine v) {
-        return v.start.y >= verticalLine.start.y && v.start.y <= verticalLine.end.y ||
-                v.end.y >= verticalLine.start.y && v.end.y <= verticalLine.end.y ||
-                v.start.y <= verticalLine.start.y && v.end.y >= verticalLine.end.y;
-    }
-
-    private static boolean overlapsHorizontally(HorizontalLine horizontalLine, HorizontalLine h) {
-        return h.start.x >= horizontalLine.start.x && h.start.x <= horizontalLine.end.x ||
-                h.end.x >= horizontalLine.start.x && h.end.x <= horizontalLine.end.x ||
-                h.start.x <= horizontalLine.start.x && h.end.x >= horizontalLine.end.x;
     }
 
     private static class Tile {
         long x;
         long y;
+
         public Tile(long x, long y) {
             this.x = x;
             this.y = y;
@@ -147,20 +102,52 @@ public class day9_2 {
     private static class VerticalLine {
         Tile start;
         Tile end;
+
         public VerticalLine(Tile tile1, Tile tile2) {
-            assert(tile1.x == tile2.x);
+            assert (tile1.x == tile2.x);
             this.start = tile1.y < tile2.y ? tile1 : tile2;
             this.end = tile1.y < tile2.y ? tile2 : tile1;
+        }
+
+        public boolean isCovered(List<VerticalLine> shape) {
+            if (shape.isEmpty()) return false;
+            for (int i = 0; i < shape.size() - 1; i++) {
+                if (shape.get(i).end.y < shape.get(i + 1).start.y) return false;
+            }
+            return shape.getFirst().start.y <= this.start.y &&
+                    shape.stream().max(Comparator.comparingLong(v -> v.end.y)).get().end.y >= this.end.y;
+        }
+
+        public boolean overlaps(VerticalLine v) {
+            return v.start.y >= start.y && v.start.y <= end.y ||
+                    v.end.y >= start.y && v.end.y <= end.y ||
+                    v.start.y <= start.y && v.end.y >= end.y;
         }
     }
 
     private static class HorizontalLine {
         Tile start;
         Tile end;
+
         public HorizontalLine(Tile tile1, Tile tile2) {
-            assert(tile1.y == tile2.y);
-            this.start = tile1.x < tile2.x ? tile1 : tile2;
-            this.end = tile1.x < tile2.x ? tile2 : tile1;
+            assert (tile1.y == tile2.y);
+            start = tile1.x < tile2.x ? tile1 : tile2;
+            end = tile1.x < tile2.x ? tile2 : tile1;
+        }
+
+        public boolean isCovered(List<HorizontalLine> shape) {
+            if (shape.isEmpty()) return false;
+            for (int i = 0; i < shape.size() - 1; i++) {
+                if (shape.get(i).end.x < shape.get(i + 1).start.x) return false;
+            }
+            return shape.getFirst().start.x <= start.x &&
+                    shape.stream().max(Comparator.comparingLong(h -> h.end.x)).get().end.x >= end.x;
+        }
+
+        public boolean overlaps(HorizontalLine h) {
+            return h.start.x >= start.x && h.start.x <= end.x ||
+                    h.end.x >= start.x && h.end.x <= end.x ||
+                    h.start.x <= start.x && h.end.x >= end.x;
         }
     }
 }
