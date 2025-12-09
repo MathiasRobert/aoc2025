@@ -79,31 +79,25 @@ table.sort(distances, function(a, b)
 	return a.distance < b.distance
 end)
 
-for i = 1, (test and 10 or 1000) do
+local i = 0
+repeat
 	print("STEP : " .. i)
 	local p1, p2 = distances[1].p1, distances[1].p2
 	mergeCircuit(points, p1, p2)
-	table.remove(distances, 1)
-end
-
-local circuits = {}
-for _, point in pairs(points) do
-	point:print()
-	circuits[point.circuit] = (circuits[point.circuit] or 0) + 1
-end
-local circuitsSorted = {}
-for _, n in pairs(circuits) do
-	table.insert(circuitsSorted, n)
-end
-table.sort(circuitsSorted, function(a, b)
-	return a > b
-end)
-
-local result = 1
-for k, v in pairs(circuitsSorted) do
-	print("Circuit " .. k .. " - Nb " .. v)
-	if k < 4 then
-		result = result * v
+	local isSameCircuit = true
+	local circuit = points[1].circuit
+	for _, point in ipairs(points) do
+		if circuit ~= point.circuit then
+			isSameCircuit = false
+			break
+		end
 	end
-end
-print(result)
+	table.remove(distances, 1)
+	i = i + 1
+	if isSameCircuit then
+		print("EEEEEENNNNNND")
+		p1:print()
+		p2:print()
+		print(p1.x * p2.x)
+	end
+until isSameCircuit
