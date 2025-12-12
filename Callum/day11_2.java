@@ -58,7 +58,7 @@ public class day11_2 {
                 }
             }
             else {
-                if (!dacFound && ! fftFound) {
+                if (!dacFound && !fftFound) {
                     this.outputs = outputs;
                 }
                 if (dacFound ^ fftFound) {
